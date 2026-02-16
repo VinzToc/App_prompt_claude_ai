@@ -508,7 +508,7 @@
 
     <div class="container">
         <header>
-            <h1>Générateur de Prompts Pédagogiques</h1>
+            <h1>Générateur de Prompts Pédagogiques pour Claude AI</h1>
             <p class="subtitle">Créez des applications éducatives sur mesure avec Claude AI en structurant vos prompts de manière professionnelle</p>
         </header>
 
@@ -520,7 +520,7 @@
                     <h2 class="section-title">Identité de l'IA</h2>
                     <div class="tooltip">
                         ?
-                        <span class="tooltip-text">Définissez le rôle que Claude doit incarner. Par exemple : "expert en mathématiques", "professeur de français", "coach d'orthographe".</span>
+                        <span class="tooltip-text">Définissez le rôle que Claude doit incarner. Par exemple : "expert en codage web et professeur de mathématiques".</span>
                     </div>
                 </div>
                 <label>Quel rôle Claude doit-il prendre ?</label>
@@ -536,23 +536,18 @@
             <div class="section">
                 <div class="section-header">
                     <div class="section-number">2</div>
-                    <h2 class="section-title">Contexte & Public</h2>
+                    <h2 class="section-title">Contexte & Public cible</h2>
                     <div class="tooltip">
                         ?
-                        <span class="tooltip-text">Sélectionnez le niveau scolaire visé pour adapter le vocabulaire et la complexité du contenu.</span>
+                        <span class="tooltip-text">Sélectionnez le niveau scolaire visé / le public visé pour adapter le vocabulaire et la complexité du contenu.</span>
                     </div>
                 </div>
                 <label>Public scolaire visé :</label>
                 <div class="field-with-copy">
                     <select id="contexte">
-                        <option value="">-- Sélectionnez un niveau --</option>
+                        <option value="">-- Sélectionnez une option --</option>
                         <option value="Enseignants">Enseignants</option>
-                        <option value="Maternelle">Maternelle (PS, MS, GS)</option>
-                        <option value="CP">CP (Cours Préparatoire)</option>
-                        <option value="CE1">CE1 (Cours Élémentaire 1)</option>
-                        <option value="CE2">CE2 (Cours Élémentaire 2)</option>
-                        <option value="CM1">CM1 (Cours Moyen 1)</option>
-                        <option value="CM2">CM2 (Cours Moyen 2)</option>
+                        <option value="Primaire">Primaire</option>
                         <option value="6ème">6ème (Collège)</option>
                         <option value="5ème">5ème (Collège)</option>
                         <option value="4ème">4ème (Collège)</option>
@@ -560,8 +555,12 @@
                         <option value="2nde">2nde (Lycée)</option>
                         <option value="1ère">1ère (Lycée)</option>
                         <option value="Terminale">Terminale (Lycée)</option>
+                        <option value="2nde Bac Pro">2nde Bac Pro (Lycée Professionnel)</option>
+                        <option value="1ère Bac Pro">1ère Bac Pro (Lycée Professionnel)</option>
+                        <option value="Terminale Bac Pro">Terminale Bac Pro (Lycée Professionnel)</option>
                         <option value="BTS">BTS (Enseignement supérieur)</option>
                         <option value="Licence">Licence (Université)</option>
+                        <option value="Master">Master (Université)</option>
                     </select>
                     <button class="copy-btn" onclick="copyField('contexte')">
                         📋 Copier
