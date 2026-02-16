@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Prompts Pédagogiques pour Claude AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #2D5F5D;
+            --secondary: #E8926C;
+            --accent: #F4D58D;
+            --dark: #1A1A1A;
+            --light: #F8F5F0;
+            --border: #D4C5B9;
+            --success: #5F9B71;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, var(--light) 0%, #E8E0D5 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -20%;
+            width: 60%;
+            height: 120%;
+            background: radial-gradient(circle, rgba(232, 146, 108, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 15px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--dark);
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .section {
+            margin-bottom: 35px;
+            padding-bottom: 35px;
+            border-bottom: 2px dashed var(--border);
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            flex: 1;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--dark);
+            transition: transform 0.2s;
+        }
+
+        .tooltip:hover {
+            transform: scale(1.1);
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 280px;
+            background-color: var(--dark);
+            color: white;
+            text-align: left;
+            border-radius: 10px;
+            padding: 12px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -140px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--dark) transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s;
+            background: var(--light);
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(45, 95, 93, 0.1);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .field-with-copy {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .field-with-copy input,
+        .field-with-copy textarea,
+        .field-with-copy select {
+            flex: 1;
+        }
+
+        .copy-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            height: 48px;
+        }
+
+        .textarea-copy-btn {
+            align-self: flex-start;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+
+        .example-templates {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .template-btn {
+            background: linear-gradient(135deg, var(--accent), #E8D39F);
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--dark);
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .template-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .preview-section {
+            background: var(--light);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            border: 2px solid var(--border);
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .preview-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .preview-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 18px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #3D7F7D);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), #D67F5C);
+            color: white;
+        }
+
+        .btn-tertiary {
+            background: linear-gradient(135deg, var(--accent), #E8D39F);
+            color: var(--dark);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            animation: fadeInUp 0.8s ease-out 0.8s both;
+        }
+
+        .rgpd-notice {
+            font-size: 0.9rem;
+            color: var(--dark);
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(232, 146, 108, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1000;
+            animation: slideInRight 0.4s ease-out;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Stagger animations for sections */
+        .section:nth-child(1) { animation-delay: 0.1s; }
+        .section:nth-child(2) { animation-delay: 0.2s; }
+        .section:nth-child(3) { animation-delay: 0.3s; }
+        .section:nth-child(4) { animation-delay: 0.4s; }
+        .section:nth-child(5) { animation-delay: 0.5s; }
+        .section:nth-child(6) { animation-delay: 0.6s; }
+        .section:nth-child(7) { animation-delay: 0.7s; }
+        .section:nth-child(8) { animation-delay: 0.8s; }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 25px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                min-width: 100%;
+            }
+
+            .example-templates {
+                grid-template-columns: 1fr;
+            }
+
+            .field-with-copy {
+                flex-direction: column;
+            }
+
+            .copy-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Print styles for PDF */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .copy-btn,
+            .action-buttons,
+            .template-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-message" id="successMessage">
+        ✓ Copié dans le presse-papiers !
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Générateur de Prompts Pédagogiques</h1>
+            <p class="subtitle">Créez des applications éducatives sur mesure avec Claude AI en structurant vos prompts de manière professionnelle</p>
+        </header>
+
+        <div class="form-container">
+            <!-- Section 1: Identité de l'IA -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">1</div>
+                    <h2 class="section-title">Identité de l'IA</h2>
+                    <div class="tooltip">
+                        ?
+                        <span class="tooltip-text">Définissez le rôle que Claude doit incarner. Par exemple : "expert en mathématiques", "professeur de français", "coach d'orthographe".</span>
+                    </div>
+                </div>
+                <label>Quel rôle Claude doit-il prendre ?</label>
+                <div class="field-with-copy">
+                    <input type="text" id="identite" placeholder="Ex: Expert en histoire spécialisé dans la Révolution française" />
+                    <button class="copy-btn" onclick="copyField('identite')">
+                        📋 Copier
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section 2: Contexte -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">2</div>
+                    <h2 class="section-title">Contexte & Public</h2>
+                    <div class="tooltip">
+                        ?
+                        <span class="tooltip-text">Sélectionnez le niveau scolaire visé pour adapter le vocabulaire et la complexité du contenu.</span>
+                    </div>
+                </div>
+                <label>Public scolaire visé :</label>
+                <div class="field-with-copy">
+                    <select id="contexte">
+                        <option value="">-- Sélectionnez un niveau --</option>
+                        <option value="Enseignants">Enseignants</option>
+                        <option value="Maternelle">Maternelle (PS, MS, GS)</option>
+                        <option value="CP">CP (Cours Préparatoire)</option>
+                        <option value="CE1">CE1 (Cours Élémentaire 1)</option>
+                        <option value="CE2">CE2 (Cours Élémentaire 2)</option>
+                        <option value="CM1">CM1 (Cours Moyen 1)</option>
+                        <option value="CM2">CM2 (Cours Moyen 2)</option>
+                        <option value="6ème">6ème (Collège)</option>
+                        <option value="5ème">5ème (Collège)</option>
+                        <option value="4ème">4ème (Collège)</option>
+                        <option value="3ème">3ème (Collège)</option>
+                        <option value="2nde">2nde (Lycée)</option>
+                        <option value="1ère">1ère (Lycée)</option>
+                        <option value="Terminale">Terminale (Lycée)</option>
+                        <option value="BTS">BTS (Enseignement supérieur)</option>
+                        <option value="Licence">Licence (Université)</option>
+                    </select>
+                    <button class="copy-btn" onclick="copyField('contexte')">
+                        📋 Copier
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section 3: Objectif Principal -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">3</div>
+                    <h2 class="section-title">Objectif Principal</h2>
+                    <div class="tooltip">
+                        ?
+                        <span class="tooltip-text">Décrivez précisément ce que l'application doit permettre de faire. Soyez spécifique sur les compétences visées.</span>
+                    </div>
+                </div>
+                <label>À quoi va servir l'application ?</label>
+                <div class="field-with-copy">
+                    <textarea id="objectif" placeholder="Ex: Permettre aux élèves de s'entraîner à la conjugaison des verbes irréguliers du 3ème groupe au présent de l'indicatif, avec correction immédiate et suivi des progrès"></textarea>
+                    <button class="copy-btn textarea-copy-btn" onclick="copyField('objectif')">
+                        📋 Copier
+                    </button>
+                </div>
+
+                <div class="example-templates">
+                    <button class="template-btn" onclick="loadTemplate('quiz')">📝 Quiz Interactif</button>
+                    <button class="template-btn" onclick="loadTemplate('exercices')">✍️ Exercices</button>
+                    <button class="template-btn" onclick="loadTemplate('evaluation')">📊 Évaluation</button>
+                    <button class="template-btn" onclick="loadTemplate('revision')">🔄 Révisions</button>
+                </div>
+            </div>
+
+            <!-- Section 4: Structure -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">4</div>
+                    <h2 class="section-title">Structure de l'Application</h2>
+                    <div class="tooltip">
+                        ?
+                        <span class="tooltip-text">Décrivez l'organisation de l'interface : nombre de pages, zones de saisie, boutons, onglets, etc.</span>
+                    </div>
+                </div>
+                <label>Organisation des pages, onglets et zones :</label>
+                <div class="field-with-copy">
+                    <textarea id="structure" placeholder="Ex: L'application comprend 3 pages principales : 
+1. Page d'accueil avec sélection du niveau de difficulté
+2. Page d'exercices avec 10 questions, un compteur de temps et un bouton de validation
+3. Page de résultats avec score, corrections détaillées et bouton de recommencement"></textarea>
+                    <button class="copy-btn textarea-copy-btn" onclick="copyField('structure')">
+                        📋 Copier
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section 5: Contenu/Actions -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">5</div>
+                    <h2 class="section-title">Contenu & Actions</h2>
+                    <div class="tooltip">
+                        ?
+                        <span class="tooltip-text">Détaillez précisément chaque élément de l'application : types d'exercices, feedbacks, animations, interactions, etc.</span>
+                    </div>
+                </div>
+                <label>Détail des zones, actions et éléments à intégrer :</label>
+                <div class="field-with-copy">
+                    <textarea id="contenu" placeholder="Ex: 
+- Zone de questions : affichage d'une phrase à compléter avec un verbe à conjuguer
+- Champ de saisie : zone de texte pour la réponse de l'élève
+- Bouton de validation : vérification immédiate avec feedback coloré (vert=correct, rouge=erreur)
+- Zone de correction : affichage de la bonne réponse en cas d'erreur avec explication
+- Barre de progression : affichage du nombre de questions restantes
+- Système de points : +10 points par bonne réponse, -5 par erreur"></textarea>
+                    <button class="copy-btn textarea-copy-btn" onclick="copyField('contenu')">
+                        📋 Copier
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section 6: Format de Sortie -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">6</div>
+                    <h2 class="section-title">Format de Sortie</h2>
+                    <div class="tooltip">
+                        ?
+                        <span class="tooltip-text">Pour une application web interactive, HTML est le format recommandé. React JSX pour des applications plus complexes.</span>
+                    </div>
+                </div>
+                <label>Format numérique attendu :</label>
+                <div class="field-with-copy">
+                    <select id="format">
+                        <option value="HTML">HTML (Application web complète)</option>
+                        <option value="React JSX">React JSX (Application React interactive)</option>
+                        <option value="Markdown">Markdown (Documentation/Contenu)</option>
+                    </select>
+                    <button class="copy-btn" onclick="copyField('format')">
+                        📋 Copier
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section 7: Lien Référence/Base de Données -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">7</div>
+                    <h2 class="section-title">Base de Données / Référence</h2>
+                    <div class="tooltip">
+                        ?
+                        <span class="tooltip-text">Optionnel : Fournissez un lien vers un Google Sheets, CSV ou autre fichier contenant les données à utiliser (questions, réponses, etc.).</span>
+                    </div>
+                </div>
+                <label>Lien vers document de référence (optionnel) :</label>
+                <div class="field-with-copy">
+                    <input type="text" id="reference" placeholder="Ex: https://docs.google.com/spreadsheets/d/..." />
+                    <button class="copy-btn" onclick="copyField('reference')">
+                        📋 Copier
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section 8: Support de Publication -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">8</div>
+                    <h2 class="section-title">Publication en Ligne</h2>
+                    <div class="tooltip">
+                        ?
+                        <span class="tooltip-text">Choisissez la plateforme pour héberger votre application. GitHub Pages est gratuit et facile à utiliser.</span>
+                    </div>
+                </div>
+                <label>Support de publication (optionnel) :</label>
+                <div class="field-with-copy">
+                    <select id="publication">
+                        <option value="">-- Non nécessaire --</option>
+                        <option value="GitHub Pages">GitHub Pages</option>
+                        <option value="Netlify">Netlify</option>
+                        <option value="Vercel">Vercel</option>
+                        <option value="CodePen">CodePen</option>
+                        <option value="Glitch">Glitch</option>
+                    </select>
+                    <button class="copy-btn" onclick="copyField('publication')">
+                        📋 Copier
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prévisualisation -->
+        <div class="preview-section">
+            <h3 class="preview-title">📋 Prévisualisation du Prompt Complet</h3>
+            <div class="preview-content" id="previewContent">
+                Remplissez les champs ci-dessus pour générer votre prompt...
+            </div>
+        </div>
+
+        <!-- Boutons d'Actions -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="copyAllFields()">
+                📋 Copier le Prompt Complet
+            </button>
+            <button class="btn btn-secondary" onclick="generatePDF()">
+                📄 Générer le PDF
+            </button>
+            <button class="btn btn-tertiary" onclick="saveToLocalStorage()">
+                💾 Sauvegarder le Travail
+            </button>
+            <button class="btn btn-tertiary" onclick="loadFromLocalStorage()">
+                📂 Charger le Travail
+            </button>
+        </div>
+
+        <!-- Footer RGPD -->
+        <footer>
+            <div class="rgpd-notice">
+                <strong>⚖️ Conformité RGPD :</strong><br>
+                Les applications pédagogiques créées avec ce générateur doivent respecter le Règlement Général sur la Protection des Données (RGPD) français et européen. Veillez à :
+                <ul style="text-align: left; margin-top: 10px; padding-left: 20px;">
+                    <li>Ne collecter que les données strictement nécessaires au fonctionnement pédagogique</li>
+                    <li>Informer les utilisateurs (élèves et parents) de l'utilisation de leurs données</li>
+                    <li>Obtenir le consentement parental pour les mineurs de moins de 15 ans</li>
+                    <li>Assurer la sécurité et la confidentialité des données collectées</li>
+                    <li>Permettre l'accès, la rectification et la suppression des données personnelles</li>
+                    <li>Ne pas transférer de données personnelles en dehors de l'UE sans garanties appropriées</li>
+                </ul>
+                <br>
+                <em>Pour plus d'informations : <a href="https://www.cnil.fr/" target="_blank" style="color: var(--primary); font-weight: 600;">CNIL.fr</a></em>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Templates prédéfinis
+        const templates = {
+            quiz: {
+                objectif: "Permettre aux élèves de tester leurs connaissances de manière interactive avec un système de questions à choix multiples, un score en temps réel et des explications pour chaque réponse.",
+                structure: "L'application comprend :\n1. Page d'accueil avec bouton de démarrage\n2. Page de quiz avec questions successives, 4 choix de réponses par question, bouton de validation\n3. Page de résultats avec score final, pourcentage de réussite et possibilité de recommencer",
+                contenu: "- Questions aléatoires tirées d'une base de données\n- 4 boutons de choix multiples par question\n- Feedback immédiat après chaque réponse (vert=correct, rouge=incorrect)\n- Compteur de questions restantes\n- Chronomètre optionnel\n- Score final avec message personnalisé selon le résultat\n- Bouton de recommencement"
+            },
+            exercices: {
+                objectif: "Créer une série d'exercices progressifs avec correction automatique et feedback pédagogique pour renforcer les compétences des élèves dans un domaine spécifique.",
+                structure: "L'application comprend :\n1. Menu de sélection des exercices avec niveaux de difficulté (facile, moyen, difficile)\n2. Page d'exercice avec énoncé, zone de réponse et bouton de vérification\n3. Zone de feedback avec correction détaillée et conseils\n4. Tableau de bord des progrès avec statistiques",
+                contenu: "- Énoncés clairs et adaptés au niveau\n- Zones de saisie pour les réponses (texte, nombres, équations)\n- Bouton de validation avec vérification instantanée\n- Feedback personnalisé selon le type d'erreur\n- Bouton 'Aide' pour des indices\n- Système d'étoiles ou de badges de progression\n- Historique des exercices réalisés"
+            },
+            evaluation: {
+                objectif: "Évaluer les compétences des élèves avec un système de notation automatique, génération de rapports individuels et suivi des performances dans le temps.",
+                structure: "L'application comprend :\n1. Page d'identification de l'élève\n2. Série de questions d'évaluation (QCM, textes à trous, questions ouvertes)\n3. Page de résultats avec note détaillée par compétence\n4. Tableau de bord enseignant pour visualiser les résultats de la classe",
+                contenu: "- Questions variées couvrant différentes compétences\n- Système de notation automatique avec barème personnalisable\n- Génération d'un rapport PDF individuel\n- Graphiques de performance par compétence\n- Comparaison avec la moyenne de la classe (anonymisée)\n- Recommandations personnalisées pour s'améliorer\n- Export des résultats pour l'enseignant"
+            },
+            revision: {
+                objectif: "Aider les élèves à réviser efficacement avec des fiches interactives, des quiz de mémorisation et un système de répétition espacée basé sur les performances.",
+                structure: "L'application comprend :\n1. Page d'accueil avec sélection du chapitre ou thème à réviser\n2. Fiches de révision interactives avec contenus multimédia\n3. Quiz de mémorisation avec cartes flash (flashcards)\n4. Système de répétition espacée : les notions mal maîtrisées reviennent plus souvent\n5. Calendrier de révisions personnalisé",
+                contenu: "- Fiches de cours synthétiques avec schémas et exemples\n- Cartes flash avec question d'un côté, réponse de l'autre (clic pour retourner)\n- Boutons 'Acquis' / 'À revoir' pour chaque carte\n- Algorithme de répétition espacée : révision des notions selon la courbe de l'oubli\n- Quiz récapitulatif en fin de session\n- Statistiques de mémorisation par thème\n- Planificateur de révisions avec rappels"
+            }
+        };
+
+        // Charger un template
+        function loadTemplate(type) {
+            const template = templates[type];
+            document.getElementById('objectif').value = template.objectif;
+            document.getElementById('structure').value = template.structure;
+            document.getElementById('contenu').value = template.contenu;
+            updatePreview();
+            showSuccessMessage('Template chargé avec succès !');
+        }
+
+        // Mise à jour de la prévisualisation
+        function updatePreview() {
+            const identite = document.getElementById('identite').value;
+            const contexte = document.getElementById('contexte').value;
+            const objectif = document.getElementById('objectif').value;
+            const structure = document.getElementById('structure').value;
+            const contenu = document.getElementById('contenu').value;
+            const format = document.getElementById('format').value;
+            const reference = document.getElementById('reference').value;
+            const publication = document.getElementById('publication').value;
+
+            let prompt = "";
+
+            if (identite) prompt += `IDENTITÉ DE L'IA :\n${identite}\n\n`;
+            if (contexte) prompt += `CONTEXTE ET PUBLIC :\n${contexte}\n\n`;
+            if (objectif) prompt += `OBJECTIF PRINCIPAL :\n${objectif}\n\n`;
+            if (structure) prompt += `STRUCTURE DE L'APPLICATION :\n${structure}\n\n`;
+            if (contenu) prompt += `CONTENU ET ACTIONS :\n${contenu}\n\n`;
+            if (format) prompt += `FORMAT DE SORTIE :\n${format}\n\n`;
+            if (reference) prompt += `DOCUMENT DE RÉFÉRENCE :\n${reference}\n\n`;
+            if (publication) prompt += `SUPPORT DE PUBLICATION :\n${publication}\n\n`;
+
+            prompt += `CONFORMITÉ RGPD :\nL'application doit respecter le RGPD français : collecte minimale de données, consentement parental pour les mineurs de moins de 15 ans, sécurité des données, droit d'accès et de suppression.`;
+
+            document.getElementById('previewContent').textContent = prompt || "Remplissez les champs ci-dessus pour générer votre prompt...";
+        }
+
+        // Écouter les changements dans tous les champs
+        document.querySelectorAll('input, textarea, select').forEach(element => {
+            element.addEventListener('input', updatePreview);
+            element.addEventListener('change', updatePreview);
+        });
+
+        // Copier un champ individuel
+        function copyField(fieldId) {
+            const field = document.getElementById(fieldId);
+            const text = field.value || field.options[field.selectedIndex]?.text || '';
+            
+            if (!text) {
+                alert('Ce champ est vide !');
+                return;
+            }
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target.closest('.copy-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ Copié !';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+
+                showSuccessMessage();
+            });
+        }
+
+        // Copier tous les champs
+        function copyAllFields() {
+            const previewText = document.getElementById('previewContent').textContent;
+            
+            if (previewText === "Remplissez les champs ci-dessus pour générer votre prompt...") {
+                alert('Veuillez remplir au moins un champ avant de copier le prompt complet.');
+                return;
+            }
+
+            navigator.clipboard.writeText(previewText).then(() => {
+                showSuccessMessage('Prompt complet copié !');
+            });
+        }
+
+        // Générer le PDF
+        function generatePDF() {
+            const previewText = document.getElementById('previewContent').textContent;
+            
+            if (previewText === "Remplissez les champs ci-dessus pour générer votre prompt...") {
+                alert('Veuillez remplir au moins un champ avant de générer le PDF.');
+                return;
+            }
+
+            const element = document.createElement('div');
+            element.style.padding = '40px';
+            element.style.fontFamily = 'Arial, sans-serif';
+            element.innerHTML = `
+                <h1 style="color: #2D5F5D; font-size: 24px; margin-bottom: 20px;">Prompt Pédagogique pour Claude AI</h1>
+                <div style="white-space: pre-wrap; line-height: 1.8; font-size: 12px;">${previewText}</div>
+                <hr style="margin: 30px 0; border: none; border-top: 2px solid #D4C5B9;">
+                <p style="font-size: 10px; color: #666;">Généré le ${new Date().toLocaleDateString('fr-FR')} avec le Générateur de Prompts Pédagogiques</p>
+            `;
+
+            const opt = {
+                margin: 15,
+                filename: 'prompt-pedagogique-claude-ai.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+            showSuccessMessage('PDF généré avec succès !');
+        }
+
+        // Sauvegarder dans le localStorage
+        function saveToLocalStorage() {
+            const data = {
+                identite: document.getElementById('identite').value,
+                contexte: document.getElementById('contexte').value,
+                objectif: document.getElementById('objectif').value,
+                structure: document.getElementById('structure').value,
+                contenu: document.getElementById('contenu').value,
+                format: document.getElementById('format').value,
+                reference: document.getElementById('reference').value,
+                publication: document.getElementById('publication').value
+            };
+
+            localStorage.setItem('promptPedagogique', JSON.stringify(data));
+            showSuccessMessage('Travail sauvegardé !');
+        }
+
+        // Charger depuis le localStorage
+        function loadFromLocalStorage() {
+            const savedData = localStorage.getItem('promptPedagogique');
+            
+            if (!savedData) {
+                alert('Aucune sauvegarde trouvée.');
+                return;
+            }
+
+            const data = JSON.parse(savedData);
+            document.getElementById('identite').value = data.identite || '';
+            document.getElementById('contexte').value = data.contexte || '';
+            document.getElementById('objectif').value = data.objectif || '';
+            document.getElementById('structure').value = data.structure || '';
+            document.getElementById('contenu').value = data.contenu || '';
+            document.getElementById('format').value = data.format || '';
+            document.getElementById('reference').value = data.reference || '';
+            document.getElementById('publication').value = data.publication || '';
+
+            updatePreview();
+            showSuccessMessage('Travail chargé !');
+        }
+
+        // Afficher le message de succès
+        function showSuccessMessage(message = '✓ Copié dans le presse-papiers !') {
+            const successMsg = document.getElementById('successMessage');
+            successMsg.textContent = message;
+            successMsg.classList.add('show');
+            
+            setTimeout(() => {
+                successMsg.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialiser la prévisualisation au chargement
+        updatePreview();
+    </script>
+</body>
+</html>
